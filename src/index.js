@@ -6,6 +6,7 @@ const app = express();
 // socket.io 연동
 const http = require('http');
 const { Server } = require('socket.io');
+const { default: mongoose } = require("mongoose");
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -14,6 +15,12 @@ const io = new Server(server);
 const publicDirectory = path.join(__dirname, '../public');
 app.use(express.static(publicDirectory));
 app.use(express.json());
+
+// DB 연결
+// mongoose.set('strictQurey', false);
+mongoose.connect(process.env.DB_URI)
+    .then(() => console.log('디비 연결 성공!'))
+    .catch(err => console.log(err))
 
 // socket events
 let users = [];
