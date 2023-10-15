@@ -2,6 +2,7 @@ require("dotenv").config();
 const path = require('path');
 const express = require('express');
 const app = express();
+const crypto = require('crypto');
 
 // socket.io 연동
 const http = require('http');
@@ -22,11 +23,38 @@ mongoose.connect(process.env.DB_URI)
     .then(() => console.log('디비 연결 성공!'))
     .catch(err => console.log(err))
 
+
+const randomId = () => crypto.randomBytes(8).toString('hex');
+
+app.post('/session', (req, res) => {
+    let data = {
+        username: req.body.username,
+        userID: randomId()
+    }
+    res.send(data);
+});
+
+io.use((socket, next) => {
+    const username = socket.handshake.auth.username;
+    const userID = socket.handshake.auth.userID;
+    if (!username) {
+        return next(new Error('Invalid username'));
+    }
+    socket.username = username;
+    socket.userID = userID;
+
+    next();
+})
+
+
 // socket events
 let users = [];
 io.on('connection', async socket => {
     // 접속한  유저 정보 가져오기
-    let userData = {};
+    let userData = {
+        username: socket.username,
+        userID: socket.id
+    };
     users.push(userData);
     io.emit('users-data', { users });
 
@@ -39,6 +67,7 @@ io.on('connection', async socket => {
     // 유저가 방에 나갔을 때
     socket.on('disconnect', () => { });
 });
+
 
 
 const PORT = process.env.PORT;
