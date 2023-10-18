@@ -8,6 +8,7 @@ const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
 const { default: mongoose } = require("mongoose");
+const messageModel = require("./models/messages.model");
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -59,7 +60,10 @@ io.on('connection', async socket => {
     io.emit('users-data', { users });
 
     // 클라이언트에서 보내온 메시지
-    socket.on('message-to-server', () => { });
+    socket.on('message-to-server', payload => {
+        io.to(payload.to).emit('message-to-client', payload);
+        saveMessage(payload);
+    });
 
     // 데이터베이스에서 메시지 가져오기
     socket.on('fetch-messages', () => { });
@@ -69,6 +73,27 @@ io.on('connection', async socket => {
 });
 
 
+const saveMessage = async ({ from, to, message, time }) => {
+    let token = getToken(from, to);
+    let data = {
+        from,
+        to,
+        message,
+        time
+    }
+
+    messageModel.updateOne({ userToken: token }, {
+        $push: { message: data }
+    }, (err, res) => {
+        if (err) throw err;
+        console.log(`메시지가 생성되었습니다.`, res);
+    });
+}
+
+const getToken = (sender, receiver) => {
+    let key = [sender, receiver].sort().join("_");
+    return key;
+}
 
 const PORT = process.env.PORT;
 server.listen(PORT, () => {
