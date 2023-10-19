@@ -69,7 +69,14 @@ io.on('connection', async socket => {
     socket.on('fetch-messages', () => { });
 
     // 유저가 방에 나갔을 때
-    socket.on('disconnect', () => { });
+    socket.on('disconnect', () => {
+        users = users.filter(user => user.userID !== socket.id);
+        // 사이드바 유저 리스트에서  없애기
+        io.emit('users-data', { users });
+        // 대화 중이라면 대화창 없애기
+        io.emit('user-away', socket.id);
+    });
+
 });
 
 

@@ -167,3 +167,12 @@ socket.on('message-to-client', ({ from, message, time }) => {
         notify.classList.remove('d-none');
     }
 })
+
+socket.on('user-away', userID => {
+    const to = title.getAttribute('userID');
+    if (to === userID) {
+        title.innerHTML = '&nbsp;';
+        msgDiv.classList.add('d-none');
+        messages.classList.add('d-none');
+    }
+})
