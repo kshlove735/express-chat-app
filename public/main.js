@@ -78,6 +78,14 @@ const setActiveUser = (element, username, userID) => {
     notify.classList.add('d-none');
 }
 
+const appendMessage = ({ message, time, background, position }) => {
+    let div = document.createElement('div');
+    div.classList.add('message', 'bg-opacity-25', 'rounded', 'm-2', 'px-2', 'py-1', background, position);
+    div.innerHTML = `<span class="msg-text">${message}</span><span class="msg-time">${time}</span>`;
+    messages.appendChild(div);
+    messages.scrollTo(0, messages.scrollHeight);
+}
+
 socket.on('users-data', ({ users }) => {
     // 유저 본인 제거
     const index = users.findIndex(user => user.userID === socket.id);
@@ -146,14 +154,8 @@ msgForm.addEventListener('submit', e => {
     message.focus();
 });
 
-const appendMessage = ({ message, time, background, position }) => {
-    let div = document.createElement('div');
-    div.classList.add('message', 'bg-opacity-25', 'rounded', 'm-2', 'px-2', 'py-1', background, position);
-    div.innerHTML = `<span class="msg-text">${message}</span><span class="msg-time">${time}</span>`;
-    messages.appendChild(div);
-    messages.scrollTo(0, messages.scrollHeight);
-}
 
+// 서버에서 보낸 메시지 클라이언트에서 받기
 socket.on('message-to-client', ({ from, message, time }) => {
     const receiver = title.getAttribute('userID');
     const notify = document.getElementById(from);
