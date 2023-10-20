@@ -20,7 +20,7 @@ const msgDiv = document.querySelector('.msg-form');
 const loginForm = document.querySelector('.user-login');
 loginForm.addEventListener('submit', (e) => {
     e.preventDefault(); // 리프레쉬 안되게 설정
-    const name = document.getElementById('username');
+    const username = document.getElementById('username');
     createSession(username.value.toLowerCase());
     username.value = '';
 
@@ -62,7 +62,6 @@ const setActiveUser = (element, username, userID) => {
 
     // 사용자 목록 활성 및 비활성 클래스 이벤트 핸들러
     const list = document.getElementsByClassName('socket-users');
-    console.log('list', list);
     for (let i = 0; i < list.length; i++) {
         list[i].classList.remove('table-active');
     }
@@ -73,7 +72,7 @@ const setActiveUser = (element, username, userID) => {
     msgDiv.classList.remove('d-none');
     messages.classList.remove('d-none');
     messages.innerHTML = '';
-    socket.emit('fetch-messages', { recevier: userID });
+    socket.emit('fetch-messages', { receiver: userID });
     const notify = document.getElementById(userID);
     notify.classList.add('d-none');
 }
@@ -95,10 +94,8 @@ socket.on('users-data', ({ users }) => {
     userTable.innerHTML = '';
     let ul = `<table class="table table-hover">`;
     for (const user of users) {
-        ul += `<tr class="socket-users"
-                onclick="setActiveUser(this, '${user.username}' , '${user.userID}')">
-                <td>${user.username}<span class="text-danger ps-1 d-none"
-                id="${user.userID}">!</span></td>
+        ul += `<tr class="socket-users" onclick="setActiveUser(this, '${user.username}', '${user.userID}')">
+                <td>${user.username}<span class="text-danger ps-1 d-none" id="${user.userID}">!</span></td>
              </tr> `;
     }
     ul += `</table>`;
@@ -174,5 +171,29 @@ socket.on('user-away', userID => {
         title.innerHTML = '&nbsp;';
         msgDiv.classList.add('d-none');
         messages.classList.add('d-none');
+    }
+})
+
+socket.on('stored-messages', ({ messages }) => {
+    if (messages.length > 0) {
+        messages.forEach(msg => {
+            let payload = {
+                message: msg.message,
+                time: msg.time
+            }
+            if (msg.from === socket.id) {
+                appendMessage({
+                    ...payload,
+                    background: 'bg-success',
+                    position: 'right'
+                });
+            } else {
+                appendMessage({
+                    ...payload,
+                    background: 'bg-secondary',
+                    position: 'left'
+                });
+            }
+        })
     }
 })

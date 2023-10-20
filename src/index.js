@@ -8,7 +8,7 @@ const crypto = require('crypto');
 const http = require('http');
 const { Server } = require('socket.io');
 const { default: mongoose } = require("mongoose");
-const { saveMessage } = require("./utils/messages");
+const { saveMessage, fetchMessage } = require("./utils/messages");
 const server = http.createServer(app);
 const io = new Server(server);
 
@@ -42,8 +42,7 @@ io.use((socket, next) => {
         return next(new Error('Invalid username'));
     }
     socket.username = username;
-    socket.userID = userID;
-
+    socket.id = userID;
     next();
 })
 
@@ -66,7 +65,9 @@ io.on('connection', async socket => {
     });
 
     // 데이터베이스에서 메시지 가져오기
-    socket.on('fetch-messages', () => { });
+    socket.on('fetch-messages', ({ receiver }) => {
+        fetchMessage(io, socket.id, receiver);
+    });
 
     // 유저가 방에 나갔을 때
     socket.on('disconnect', () => {
@@ -78,6 +79,7 @@ io.on('connection', async socket => {
     });
 
 });
+
 
 
 
